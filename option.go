@@ -10,8 +10,8 @@ func SetLogger(logger Logger) Option {
 // Verbose sets the expression descriptor to output string in verbose format or not.
 //
 // Example: cronExpression = "* * 5 * * * *"
-//  - verbose = false: Every second, between 05:00 and 05:59
-//  - verbose = true: Every second, every minute, between 05:00 and 05:59, every day
+//   - verbose = false: Every second, between 05:00 and 05:59
+//   - verbose = true: Every second, every minute, between 05:00 and 05:59, every day
 func Verbose(v bool) Option {
 	return func(exprDesc *ExpressionDescriptor) {
 		exprDesc.isVerbose = v
