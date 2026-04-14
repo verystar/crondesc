@@ -15,13 +15,13 @@ func main() {
 		cron.DayOfWeekStartsAtOne(true),
 		cron.Verbose(true),
 		cron.SetLogger(log.New(os.Stdout, "cron: ", 0)),
-		cron.SetLocales(cron.Locale_en),
+		cron.SetLocales(cron.Locale_zh_CN),
 	)
 	if err != nil {
 		log.Panicf("failed to create CRON expression descriptor: %s", err)
 	}
 
-	desc, err := exprDesc.ToDescription(expr, cron.Locale_en)
+	desc, err := exprDesc.ToDescription(expr, cron.Locale_zh_CN)
 	if err != nil {
 		log.Panicf("failed to convert CRON expression to human readable description: %s", err)
 	}
