@@ -1,7 +1,7 @@
 # cron
 
 <p align="left">
-  
+  [![Go CI](https://github.com/verystar/crondesc/actions/workflows/go.yml/badge.svg)](https://github.com/verystar/crondesc/actions/workflows/go.yml)
   <a href="https://godoc.org/github.com/verystar/crondesc" title="GoDoc Reference" rel="nofollow"><img src="https://img.shields.io/badge/go-documentation-blue.svg?style=flat" alt="GoDoc Reference"></a>
   <a href="https://goreportcard.com/report/github.com/verystar/crondesc"><img src="https://goreportcard.com/badge/github.com/verystar/crondesc" alt="Code Status" /></a>
 </p>
