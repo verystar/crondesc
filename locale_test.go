@@ -1,4 +1,4 @@
-package cron
+package crondesc
 
 type localeTestCase struct {
 	name    string

@@ -1,4 +1,4 @@
-package cron
+package crondesc
 
 import (
 	"bytes"
@@ -10,14 +10,14 @@ import (
 )
 
 var (
-	InvalidExprError           = errors.New("invalid expression")
-	InvalidExprSecondError     = errors.New("invalid expression, second part")
-	InvalidExprMinuteError     = errors.New("invalid expression, minute part")
-	InvalidExprHourError       = errors.New("invalid expression, hour part")
-	InvalidExprDayOfMonthError = errors.New("invalid expression, day of month part")
-	InvalidExprMonthError      = errors.New("invalid expression, month part")
-	InvalidExprDayOfWeekError  = errors.New("invalid expression, day of week part")
-	InvalidExprYearError       = errors.New("invalid expression, year part")
+	ErrInvalidExpr           = errors.New("invalid expression")
+	ErrInvalidExprSecond     = errors.New("invalid expression, second part")
+	ErrInvalidExprMinute     = errors.New("invalid expression, minute part")
+	ErrInvalidExprHour       = errors.New("invalid expression, hour part")
+	ErrInvalidExprDayOfMonth = errors.New("invalid expression, day of month part")
+	ErrInvalidExprMonth      = errors.New("invalid expression, month part")
+	ErrInvalidExprDayOfWeek  = errors.New("invalid expression, day of week part")
+	ErrInvalidExprYear       = errors.New("invalid expression, year part")
 )
 
 var (
@@ -95,16 +95,16 @@ func (p *cronParser) Parse(expr string) (exprParts []string, err error) {
 
 func (p *cronParser) extractExprParts(expr string) (exprParts []string, err error) {
 	if strings.TrimSpace(expr) == "" {
-		return nil, InvalidExprError
+		return nil, ErrInvalidExpr
 	}
 
 	expr = strings.ToLower(expr)
-	exprParts = make([]string, 7, 7)
+	exprParts = make([]string, 7)
 	parts := strings.Fields(expr)
 
 	switch {
 	case len(parts) < 5:
-		return nil, fmt.Errorf("expression has only %d part(s), at least 5 parts required: %w", len(parts), InvalidExprError)
+		return nil, fmt.Errorf("expression has only %d part(s), at least 5 parts required: %w", len(parts), ErrInvalidExpr)
 	case len(parts) == 5:
 		// Expression has 5 parts (standard POSIX CRON)
 		// => Prepend 1 and append 1 empty part at the beginning and the end of exprParts
@@ -119,7 +119,7 @@ func (p *cronParser) extractExprParts(expr string) (exprParts []string, err erro
 		// Second provided => Last parts (year) is empty
 		copy(exprParts, parts)
 	case len(parts) > 7:
-		return nil, fmt.Errorf("expression has %d parts, at most 7 parts allowed: %w", len(parts), InvalidExprError)
+		return nil, fmt.Errorf("expression has %d parts, at most 7 parts allowed: %w", len(parts), ErrInvalidExpr)
 	default: // Expression has 7 parts
 		exprParts = parts
 	}
@@ -183,7 +183,7 @@ func (p *cronParser) normalize(exprParts []string) (err error) {
 			c = zeroRune // Accept 7 means Sunday too
 		} else {
 			if c == zeroRune {
-				return fmt.Errorf("day of week starts at 1, must be from 1 to 7: %w", InvalidExprDayOfWeekError)
+				return fmt.Errorf("day of week starts at 1, must be from 1 to 7: %w", ErrInvalidExprDayOfWeek)
 			}
 			c -= 1 // Day of week start at 1 (Monday), so shift it 1
 		}
@@ -198,9 +198,9 @@ func (p *cronParser) normalize(exprParts []string) (err error) {
 		dayOfWeek = "6"
 	}
 
-	if strings.Index(dayOfMonth, "w") > -1 &&
-		(strings.Index(dayOfMonth, ",") > -1 || strings.Index(dayOfMonth, "-") > -1) {
-		return fmt.Errorf("the 'W' character can be specified only when the day-of-month is a single day, not a range or list of days: %w", InvalidExprDayOfMonthError)
+	if strings.Contains(dayOfMonth, "w") &&
+		(strings.Contains(dayOfMonth, ",") || strings.Contains(dayOfMonth, "-")) {
+		return fmt.Errorf("the 'W' character can be specified only when the day-of-month is a single day, not a range or list of days: %w", ErrInvalidExprDayOfMonth)
 	}
 
 	// Convert DOW SUN-SAT format to 0-6 format
@@ -296,44 +296,44 @@ func (p *cronParser) validate(exprParts []string) (err error) {
 	// Check year first to reduce bound checking
 	matches := getNumbersFunc(exprParts[6])
 	if !isValidNumbers(matches, 1, 2099) {
-		return fmt.Errorf("year contains invalid values: %w", InvalidExprYearError)
+		return fmt.Errorf("year contains invalid values: %w", ErrInvalidExprYear)
 	}
 
 	// Second
 	matches = getNumbersFunc(exprParts[0])
 	if !isValidNumbers(matches, 0, 59) {
-		return fmt.Errorf("second contains invalid values: %w", InvalidExprSecondError)
+		return fmt.Errorf("second contains invalid values: %w", ErrInvalidExprSecond)
 	}
 	// Minute
 	matches = getNumbersFunc(exprParts[1])
 	if !isValidNumbers(matches, 0, 59) {
-		return fmt.Errorf("minute contains invalid values: %w", InvalidExprMinuteError)
+		return fmt.Errorf("minute contains invalid values: %w", ErrInvalidExprMinute)
 	}
 	// Hour
 	matches = getNumbersFunc(exprParts[2])
 	if !isValidNumbers(matches, 0, 23) {
-		return fmt.Errorf("hour contains invalid values: %w", InvalidExprHourError)
+		return fmt.Errorf("hour contains invalid values: %w", ErrInvalidExprHour)
 	}
 	// Day of month
 	matches = getNumbersFunc(exprParts[3])
 	if !isValidNumbers(matches, 1, 31) {
-		return fmt.Errorf("DOM contains invalid values: %w", InvalidExprDayOfMonthError)
+		return fmt.Errorf("DOM contains invalid values: %w", ErrInvalidExprDayOfMonth)
 	}
 	if invalidCharsDOWDOMRegex.MatchString(exprParts[3]) {
-		return fmt.Errorf("DOM contains invalid values: %w", InvalidExprDayOfMonthError)
+		return fmt.Errorf("DOM contains invalid values: %w", ErrInvalidExprDayOfMonth)
 	}
 	// Month
 	matches = getNumbersFunc(exprParts[4])
 	if !isValidNumbers(matches, 1, 12) {
-		return fmt.Errorf("month contains invalid values: %w", InvalidExprMonthError)
+		return fmt.Errorf("month contains invalid values: %w", ErrInvalidExprMonth)
 	}
 	// Day of week
 	matches = getNumbersFunc(exprParts[5])
 	if !isValidNumbers(matches, 0, 6) {
-		return fmt.Errorf("DOW contains invalid values: %w", InvalidExprDayOfWeekError)
+		return fmt.Errorf("DOW contains invalid values: %w", ErrInvalidExprDayOfWeek)
 	}
 	if invalidCharsDOWDOMRegex.MatchString(exprParts[5]) { // DOW
-		return fmt.Errorf("DOW contains invalid values: %w", InvalidExprDayOfWeekError)
+		return fmt.Errorf("DOW contains invalid values: %w", ErrInvalidExprDayOfWeek)
 	}
 
 	return nil

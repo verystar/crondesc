@@ -1,4 +1,4 @@
-package cron
+package crondesc
 
 func zh_TW_TestCases() []localeTestCase {
 	return []localeTestCase{

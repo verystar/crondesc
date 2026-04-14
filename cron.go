@@ -1,4 +1,4 @@
-package cron
+package crondesc
 
 import (
 	"fmt"
@@ -88,7 +88,7 @@ func (e *ExpressionDescriptor) ToDescription(expr string, loc LocaleType) (desc 
 	desc = timeSegment + dayOfMonthDesc + dayOfWeekDesc + monthDesc + yearDesc
 	desc = transformVerbosity(desc, locale, e.isVerbose)
 	desc = strings.Join(strings.Fields(desc), " ")
-	desc = strings.Replace(desc, " ,", ",", -1)
+	desc = strings.ReplaceAll(desc, " ,", ",")
 	runes := []rune(desc)
 	runes[0] = []rune(strings.ToUpper(string(runes[0])))[0]
 
@@ -97,13 +97,6 @@ func (e *ExpressionDescriptor) ToDescription(expr string, loc LocaleType) (desc 
 
 func (e *ExpressionDescriptor) log(format string, v ...interface{}) {
 	if e.logger == nil {
-		return
-	}
-	e.logger.Printf(format, v...)
-}
-
-func (e *ExpressionDescriptor) verbose(format string, v ...interface{}) {
-	if !e.isVerbose || e.logger == nil {
 		return
 	}
 	e.logger.Printf(format, v...)
@@ -119,9 +112,9 @@ func (e *ExpressionDescriptor) getTimeOfDayDescription(exprParts []string, local
 		// specific time of day (i.e. 10:14:00)
 		desc += locale.GetString(atSpace) + formatTime(hour, minute, second, locale, e.is24HourTimeFormat)
 	} else if second == "" &&
-		strings.Index(minute, "-") > -1 &&
-		!(strings.Index(minute, ",") > -1) &&
-		!(strings.Index(minute, "/") > -1) &&
+		strings.Contains(minute, "-") &&
+		!strings.Contains(minute, ",") &&
+		!strings.Contains(minute, "/") &&
 		!containsAny(hour, specialChars) {
 		// minute range in single hour (i.e. 0-10 11)
 		idx := strings.Index(minute, "-")
@@ -129,9 +122,9 @@ func (e *ExpressionDescriptor) getTimeOfDayDescription(exprParts []string, local
 			formatTime(hour, minute[:idx], "", locale, e.is24HourTimeFormat),
 			formatTime(hour, minute[idx+1:], "", locale, e.is24HourTimeFormat))
 	} else if second == "" &&
-		strings.Index(hour, ",") > -1 &&
-		strings.Index(hour, "-") == -1 &&
-		strings.Index(hour, "/") == -1 &&
+		strings.Contains(hour, ",") &&
+		!strings.Contains(hour, "-") &&
+		!strings.Contains(hour, "/") &&
 		!containsAny(minute, specialChars) {
 		// hours list with single minute (i.e. 30 6,14,16)
 		hourParts := strings.Split(hour, ",")
@@ -213,7 +206,7 @@ func (e *ExpressionDescriptor) getDayOfMonthDescription(exprParts []string, loca
 	default:
 		weekdaysNumberMatches := weekdaysNumberRegex.FindAllString(dom, -1)
 		if len(weekdaysNumberMatches) > 0 {
-			dayNumber, _ := strconv.Atoi(strings.Replace(weekdaysNumberMatches[0], "w", "", -1))
+			dayNumber, _ := strconv.Atoi(strings.ReplaceAll(weekdaysNumberMatches[0], "w", ""))
 			dayStr := ""
 			if dayNumber == 1 {
 				dayStr = locale.GetString(firstWeekday)
@@ -260,7 +253,6 @@ func (e *ExpressionDescriptor) getDayOfMonthDescription(exprParts []string, loca
 			},
 			locale,
 		)
-		break
 	}
 
 	return desc
@@ -318,8 +310,8 @@ func (e *ExpressionDescriptor) getDayOfWeekDescription(exprParts []string, local
 			exp := s
 			if idx := strings.Index(s, "#"); idx > -1 {
 				exp = s[:idx]
-			} else if strings.Index(s, "l") > -1 {
-				exp = strings.Replace(exp, "l", "", -1)
+			} else if strings.Contains(s, "l") {
+				exp = strings.ReplaceAll(exp, "l", "")
 			}
 			expInt, _ := strconv.Atoi(exp)
 			return daysOfWeekNames[expInt]
@@ -352,7 +344,7 @@ func (e *ExpressionDescriptor) getDayOfWeekDescription(exprParts []string, local
 					dowOfMonthDesc = locale.GetString(fifth)
 				}
 				format = locale.GetString(commaOnThe) + dowOfMonthDesc + locale.GetString(spaceX0OfTheMonth)
-			} else if strings.Index(s, "l") > -1 {
+			} else if strings.Contains(s, "l") {
 				format = locale.GetString(commaOnTheLastX0OfTheMonth)
 			} else {
 				// If both DOM and DOW are specified, the cron will execute at either time.
@@ -407,8 +399,7 @@ func (e *ExpressionDescriptor) getLocale(loc LocaleType) Locale {
 }
 
 func containsAny(s string, matches []rune) bool {
-	runes := []rune(s)
-	for _, r := range runes {
+	for _, r := range s {
 		for _, c := range matches {
 			if r == c {
 				return true
@@ -488,12 +479,12 @@ func getSegmentDescription(expr, allDesc string,
 		desc = allDesc
 	} else if !containsAny(expr, []rune{'/', '-', ','}) {
 		desc = sprintf(getDescriptionFormat(expr), getSingleItemDescription(expr))
-	} else if strings.Index(expr, "/") > -1 {
+	} else if strings.Contains(expr, "/") {
 		segments := strings.Split(expr, "/")
 		desc = sprintf(getIntervalDescriptionFormat(segments[1]), segments[1])
 
 		// interval contains 'between' piece (i.e. 2-59/3 )
-		if strings.Index(segments[0], "-") > -1 {
+		if strings.Contains(segments[0], "-") {
 			betweenDesc := generateBetweenSegmentDescription(segments[0], getBetweenDescriptionFormat, getSingleItemDescription)
 			if strings.Index(betweenDesc, ", ") != 0 {
 				desc += ", "
@@ -504,7 +495,7 @@ func getSegmentDescription(expr, allDesc string,
 			rangeDesc = strings.Replace(rangeDesc, ", ", "", 1)
 			desc += sprintf(locale.GetString(commaStartingX0), rangeDesc)
 		}
-	} else if strings.Index(expr, ",") > -1 {
+	} else if strings.Contains(expr, ",") {
 		segments := strings.Split(expr, ",")
 		contentDesc := ""
 		for i, seg := range segments {
@@ -520,7 +511,7 @@ func getSegmentDescription(expr, allDesc string,
 			}
 
 			getBetweenFmtFunc := func(s string) string { return locale.GetString(commaX0ThroughX1) }
-			if strings.Index(seg, "-") > -1 {
+			if strings.Contains(seg, "-") {
 				betweenDesc := generateBetweenSegmentDescription(
 					seg,
 					getBetweenFmtFunc,
@@ -534,7 +525,7 @@ func getSegmentDescription(expr, allDesc string,
 		}
 
 		desc += sprintf(getDescriptionFormat(expr), contentDesc)
-	} else if strings.Index(expr, "-") > -1 {
+	} else if strings.Contains(expr, "-") {
 		desc = generateBetweenSegmentDescription(
 			expr,
 			getBetweenDescriptionFormat,
@@ -572,7 +563,7 @@ func (e *ExpressionDescriptor) getMinutesDescription(exprParts []string, locale 
 			return locale.GetString(minutesX0ThroughX1PastTheHour)
 		},
 		func(s string) string {
-			if s == "0" && strings.Index(hour, "/") == -1 && second == "" {
+			if s == "0" && !strings.Contains(hour, "/") && second == "" {
 				return locale.GetString(everyHour)
 			}
 			sInt, _ := strconv.Atoi(s)
@@ -619,9 +610,9 @@ func transformVerbosity(desc string, locale Locale, isVerbose bool) string {
 	eMinute := locale.GetString(everyMinute)
 	eHour := locale.GetString(everyHour)
 	eDay := locale.GetString(commaEveryDay)
-	desc = strings.Replace(desc, ", "+eMinute, "", -1)
-	desc = strings.Replace(desc, ", "+eHour, "", -1)
-	desc = strings.Replace(desc, eDay, "", -1)
+	desc = strings.ReplaceAll(desc, ", "+eMinute, "")
+	desc = strings.ReplaceAll(desc, ", "+eHour, "")
+	desc = strings.ReplaceAll(desc, eDay, "")
 	return desc
 }
 

@@ -1,4 +1,4 @@
-package cron
+package crondesc
 
 func sv_TestCases() []localeTestCase {
 	return []localeTestCase{

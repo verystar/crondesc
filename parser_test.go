@@ -1,4 +1,4 @@
-package cron
+package crondesc
 
 import (
 	"errors"
@@ -21,7 +21,7 @@ func TestCronParser_Parse(t *testing.T) {
 			name:     "should failed on empty",
 			inExpr:   "   ",
 			outExprs: nil,
-			outErr:   InvalidExprError,
+			outErr:   ErrInvalidExpr,
 		}, {
 			name:     "should parse cron with multiple spaces between parts",
 			inExpr:   "30  2  *    *  *",
@@ -51,12 +51,12 @@ func TestCronParser_Parse(t *testing.T) {
 			name:     "should error if more than 7 part",
 			inExpr:   "5 * * * * *  2020 *",
 			outExprs: nil,
-			outErr:   InvalidExprError,
+			outErr:   ErrInvalidExpr,
 		}, {
 			name:     "should error if expression is not a cron schedule",
 			inExpr:   "sdlksCRAPdlkskl- dds",
 			outExprs: nil,
-			outErr:   InvalidExprError,
+			outErr:   ErrInvalidExpr,
 		},
 
 		// normalize
@@ -100,7 +100,7 @@ func TestCronParser_Parse(t *testing.T) {
 			inExpr:               "* * * * 0-7",
 			inTestDOWStartsAtOne: true,
 			outExprs:             nil,
-			outErr:               InvalidExprDayOfWeekError,
+			outErr:               ErrInvalidExprDayOfWeek,
 		}, {
 			name:                 "should parse when DOWStartsAtZero is false",
 			inExpr:               "* * * * 1-7",
@@ -116,12 +116,12 @@ func TestCronParser_Parse(t *testing.T) {
 			name:     "should failed if DOM 'W' comes with list of dates 1",
 			inExpr:   "* * 1-3W * *",
 			outExprs: nil,
-			outErr:   InvalidExprDayOfMonthError,
+			outErr:   ErrInvalidExprDayOfMonth,
 		}, {
 			name:     "should failed if DOM 'W' comes with list of dates 2",
 			inExpr:   "* * 1,2,5W * *",
 			outExprs: nil,
-			outErr:   InvalidExprDayOfMonthError,
+			outErr:   ErrInvalidExprDayOfMonth,
 		}, {
 			name:     "should convert hour to range 1",
 			inExpr:   "0-20/3 9 * * *",
@@ -149,89 +149,89 @@ func TestCronParser_Parse(t *testing.T) {
 			name:     "should error if second is invalid 2",
 			inExpr:   "60 * * * * * *",
 			outExprs: nil,
-			outErr:   InvalidExprSecondError,
+			outErr:   ErrInvalidExprSecond,
 		}, {
 			name:     "should error if second is invalid 3",
 			inExpr:   "9223372036854775808 * * * * * *",
 			outExprs: nil,
-			outErr:   InvalidExprSecondError,
+			outErr:   ErrInvalidExprSecond,
 		}, {
 			name:     "should error if minute is invalid 2",
 			inExpr:   "* 60 * * * * *",
 			outExprs: nil,
-			outErr:   InvalidExprMinuteError,
+			outErr:   ErrInvalidExprMinute,
 		}, {
 			name:     "should error if hour is invalid 2",
 			inExpr:   "* * 24 * * * *",
 			outExprs: nil,
-			outErr:   InvalidExprHourError,
+			outErr:   ErrInvalidExprHour,
 		}, {
 			name:     "should error if DOM is invalid 2",
 			inExpr:   "* * * 32 * * *",
 			outExprs: nil,
-			outErr:   InvalidExprDayOfMonthError,
+			outErr:   ErrInvalidExprDayOfMonth,
 		}, {
 			name:     "should error if DOM contains invalid characters",
 			inExpr:   "* * LX * *",
 			outExprs: nil,
-			outErr:   InvalidExprDayOfMonthError,
+			outErr:   ErrInvalidExprDayOfMonth,
 		}, {
 			name:     "should error if month is invalid 2",
 			inExpr:   "* * * * 13 * *",
 			outExprs: nil,
-			outErr:   InvalidExprMonthError,
+			outErr:   ErrInvalidExprMonth,
 		}, {
 			name:     "should error if DOW is invalid 2",
 			inExpr:   "* * * * * 8 *",
 			outExprs: nil,
-			outErr:   InvalidExprDayOfWeekError,
+			outErr:   ErrInvalidExprDayOfWeek,
 		}, {
 			name:     "should error if DOW contains invalid characters",
 			inExpr:   "* * * * MO",
 			outExprs: nil,
-			outErr:   InvalidExprDayOfWeekError,
+			outErr:   ErrInvalidExprDayOfWeek,
 		}, {
 			name:     "should error if year is invalid 1",
 			inExpr:   "* * * * * * 0",
 			outExprs: nil,
-			outErr:   InvalidExprYearError,
+			outErr:   ErrInvalidExprYear,
 		}, {
 			name:     "should error if year is invalid 2",
 			inExpr:   "* * * * * * 2100",
 			outExprs: nil,
-			outErr:   InvalidExprYearError,
+			outErr:   ErrInvalidExprYear,
 		},
 		// Cannot test due to no reliable way to detect negative number in cron expression
 		// {
 		// 	name:     "should error if second is invalid 1",
 		// 	inExpr:   "-1 * * * * * *",
 		// 	outExprs: nil,
-		// 	outErr:   InvalidExprSecondError,
+		// 	outErr:   ErrInvalidExprSecond,
 		// }, {
 		// 	name:     "should error if minute is invalid 1",
 		// 	inExpr:   "* -1 * * * * *",
 		// 	outExprs: nil,
-		// 	outErr:   InvalidExprMinuteError,
+		// 	outErr:   ErrInvalidExprMinute,
 		// },{
 		// 	name:     "should error if hour is invalid 1",
 		// 	inExpr:   "* * -1 * * * *",
 		// 	outExprs: nil,
-		// 	outErr:   InvalidExprHourError,
+		// 	outErr:   ErrInvalidExprHour,
 		// },{
 		// 	name:     "should error if DOM is invalid 1",
 		// 	inExpr:   "* * * -1 * * *",
 		// 	outExprs: nil,
-		// 	outErr:   InvalidExprDayOfMonthError,
+		// 	outErr:   ErrInvalidExprDayOfMonth,
 		// },{
 		// 	name:     "should error if month is invalid 1",
 		// 	inExpr:   "* * * * 0 * *",
 		// 	outExprs: nil,
-		// 	outErr:   InvalidExprMonthError,
+		// 	outErr:   ErrInvalidExprMonth,
 		// }, {
 		// 	name:     "should error if DOW is invalid 1",
 		// 	inExpr:   "* * * * * -1 *",
 		// 	outExprs: nil,
-		// 	outErr:   InvalidExprDayOfWeekError,
+		// 	outErr:   ErrInvalidExprDayOfWeek,
 		// },
 	}
 

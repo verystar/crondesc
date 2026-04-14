@@ -1,4 +1,4 @@
-package cron
+package crondesc
 
 // SetLogger allows the expression descriptor to output log via logger.
 func SetLogger(logger Logger) Option {

@@ -1,11 +1,11 @@
-package cron
+package crondesc
 
 import (
 	"encoding/json"
 	"fmt"
 	"strings"
 
-	"github.com/lnquy/cron/i18n"
+	"github.com/verystar/crondesc/i18n"
 )
 
 const (
@@ -269,7 +269,6 @@ var (
 	commaEveryX0Days                    LocaleKey = "commaEveryX0Days"
 	commaBetweenDayX0AndX1OfTheMonth    LocaleKey = "commaBetweenDayX0AndX1OfTheMonth"
 	commaOnDayX0OfTheMonth              LocaleKey = "commaOnDayX0OfTheMonth"
-	commaEveryHour                      LocaleKey = "commaEveryHour" // Not used yet
 	commaEveryX0Years                   LocaleKey = "commaEveryX0Years"
 	commaStartingX0                     LocaleKey = "commaStartingX0"
 	daysOfTheWeek                       LocaleKey = "daysOfTheWeek"

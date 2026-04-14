@@ -4,7 +4,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/lnquy/cron"
+	cron "github.com/verystar/crondesc"
 )
 
 const expr = "0 * 9 LW JAN-OCT 1-5 2000/10"

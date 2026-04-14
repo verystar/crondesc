@@ -1,4 +1,4 @@
-package cron
+package crondesc
 
 func en_TestCases() []localeTestCase {
 	return []localeTestCase{
@@ -126,8 +126,8 @@ func en_TestCases() []localeTestCase {
 		{inExpr: "0 13 * * 1", isVerbose: true, outErr: nil, outDesc: "At 01:00 PM, only on Monday"},
 
 		// Error
-		{inExpr: "sdlksldksldksd", outErr: InvalidExprError, outDesc: ""},
-		{inExpr: "", outErr: InvalidExprError, outDesc: ""},
-		{inExpr: "0 30 14 1W,15W * ? *", outErr: InvalidExprDayOfMonthError, outDesc: ""},
+		{inExpr: "sdlksldksldksd", outErr: ErrInvalidExpr, outDesc: ""},
+		{inExpr: "", outErr: ErrInvalidExpr, outDesc: ""},
+		{inExpr: "0 30 14 1W,15W * ? *", outErr: ErrInvalidExprDayOfMonth, outDesc: ""},
 	}
 }
